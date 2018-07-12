@@ -12,16 +12,6 @@ pipeline:
     when:
       event: push
 
-  test:
-    image: justinbarrick/drone-minikube:localkube
-    environment:
-      - KUBECONFIG=/go/.kube/config
-    commands:
-      - apk update && apk add curl
-      - ./test/integration-test.sh
-    when:
-      event: push
-
   slack:
     image: plugins/slack
     webhook: https://hooks.slack.com/services/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
@@ -37,13 +27,3 @@ pipeline:
       {{else}}
         Build <{{build.link}}|#{{build.number}}> for <https://github.com/{{repo.owner}}/{{repo.name}}/tree/{{build.commit}}|{{repo.name}}#{{build.branch}}> by {{build.author}} failed.
       {{/success}}
-
-services:
-  minikube:
-    image: justinbarrick/drone-minikube:localkube
-    privileged: true
-    commands:
-    - echo nameserver 8.8.8.8 > /etc/resolv.conf
-    - /usr/local/bin/docker-entrypoint.sh start
-    when:
-      event: push
