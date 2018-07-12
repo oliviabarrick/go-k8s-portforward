@@ -17,6 +17,7 @@ pipeline:
     environment:
       - KUBECONFIG=/go/.kube/config
     commands:
+      - apk update && apk add curl
       - ./test/integration-test.sh
     when:
       event: push
