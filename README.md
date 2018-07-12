@@ -19,11 +19,14 @@ import (
 	"log"
 	"time"
 	"github.com/justinbarrick/go-k8s-portforward"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func main() {
-	pf, err := portforward.NewPortForwarder("default", map[string]string{
-		"app": "nginx",
+	pf, err := portforward.NewPortForwarder("default", metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"app": "nginx",
+		},
 	}, 80)
 	if err != nil {
 		log.Fatal("Error setting up port forwarder: ", err)

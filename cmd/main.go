@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/justinbarrick/go-k8s-portforward"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"strings"
 	"time"
@@ -42,7 +43,9 @@ func main() {
 	flag.StringVar(&namespace, "namespace", "default", "namespace to look for the pod in")
 	flag.Parse()
 
-	pf, err := portforward.NewPortForwarder(namespace, labels, port)
+	pf, err := portforward.NewPortForwarder(namespace, metav1.LabelSelector{
+		MatchLabels: labels,
+	}, port)
 	if err != nil {
 		log.Fatal("Error setting up port forwarder: ", err)
 	}

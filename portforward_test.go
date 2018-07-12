@@ -55,8 +55,10 @@ func TestFindPodByLabels(t *testing.T) {
 				"name": "flux",
 			}),
 			newPod("mypod3", map[string]string{})),
-		Labels: map[string]string{
-			"name": "flux",
+		Labels: metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"name": "flux",
+			},
 		},
 	}
 
@@ -71,14 +73,16 @@ func TestFindPodByLabelsNoneExist(t *testing.T) {
 			newPod("mypod1", map[string]string{
 				"name": "other",
 			})),
-		Labels: map[string]string{
-			"name": "flux",
+		Labels: metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"name": "flux",
+			},
 		},
 	}
 
 	_, err := pf.findPodByLabels()
 	assert.NotNil(t, err)
-	assert.Equal(t, "Could not find pod for selector: labels map[name:flux]", err.Error())
+	assert.Equal(t, "Could not find pod for selector: labels \"name=flux\"", err.Error())
 }
 
 func TestFindPodByLabelsMultiple(t *testing.T) {
@@ -91,14 +95,68 @@ func TestFindPodByLabelsMultiple(t *testing.T) {
 				"name": "flux",
 			}),
 			newPod("mypod3", map[string]string{})),
-		Labels: map[string]string{
-			"name": "flux",
+		Labels: metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"name": "flux",
+			},
 		},
 	}
 
 	_, err := pf.findPodByLabels()
 	assert.NotNil(t, err)
-	assert.Equal(t, "Ambiguous pod: found more than one pod for selector: labels map[name:flux]", err.Error())
+	assert.Equal(t, "Ambiguous pod: found more than one pod for selector: labels \"name=flux\"", err.Error())
+}
+
+func TestFindPodByLabelsExpression(t *testing.T) {
+	pf := PortForward{
+		Clientset: fakekubernetes.NewSimpleClientset(
+			newPod("mypod1", map[string]string{
+				"name": "lol",
+			}),
+			newPod("mypod2", map[string]string{
+				"name": "fluxd",
+			}),
+			newPod("mypod3", map[string]string{})),
+		Labels: metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				metav1.LabelSelectorRequirement{
+					Key:      "name",
+					Operator: metav1.LabelSelectorOpIn,
+					Values:   []string{"flux", "fluxd"},
+				},
+			},
+		},
+	}
+
+	pod, err := pf.findPodByLabels()
+	assert.Nil(t, err)
+	assert.Equal(t, "mypod2", pod)
+}
+
+func TestFindPodByLabelsExpressionNotFound(t *testing.T) {
+	pf := PortForward{
+		Clientset: fakekubernetes.NewSimpleClientset(
+			newPod("mypod1", map[string]string{
+				"name": "lol",
+			}),
+			newPod("mypod2", map[string]string{
+				"name": "lol",
+			}),
+			newPod("mypod3", map[string]string{})),
+		Labels: metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				metav1.LabelSelectorRequirement{
+					Key:      "name",
+					Operator: metav1.LabelSelectorOpIn,
+					Values:   []string{"flux", "fluxd"},
+				},
+			},
+		},
+	}
+
+	_, err := pf.findPodByLabels()
+	assert.NotNil(t, err)
+	assert.Equal(t, "Could not find pod for selector: labels \"name in (flux,fluxd)\"", err.Error())
 }
 
 func TestGetPodNameNameSet(t *testing.T) {
@@ -117,8 +175,10 @@ func TestGetPodNameNoNameSet(t *testing.T) {
 			newPod("mypod", map[string]string{
 				"name": "flux",
 			})),
-		Labels: map[string]string{
-			"name": "flux",
+		Labels: metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"name": "flux",
+			},
 		},
 	}
 

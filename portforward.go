@@ -28,7 +28,7 @@ type PortForward struct {
 	// The pod name to use, required if Labels is empty.
 	Name string
 	// The labels to use to find the pod.
-	Labels map[string]string
+	Labels metav1.LabelSelector
 	// The port on the pod to forward traffic to.
 	DestinationPort int
 	// The port that the port forward should listen to, random if not set.
@@ -42,7 +42,7 @@ type PortForward struct {
 // Initialize a port forwarder, loads the Kubernetes configuration file and creates the client.
 // You do not need to use this function if you have a client to use already - the PortForward
 // struct can be created directly.
-func NewPortForwarder(namespace string, labels map[string]string, port int) (*PortForward, error) {
+func NewPortForwarder(namespace string, labels metav1.LabelSelector, port int) (*PortForward, error) {
 	pf := &PortForward{
 		Namespace:       namespace,
 		Labels:          labels,
@@ -198,26 +198,26 @@ func (p *PortForward) getPodName() (string, error) {
 // more or less than one pod.
 // It searches for the labels specified by labels.
 func (p *PortForward) findPodByLabels() (string, error) {
-	if len(p.Labels) == 0 {
+	if len(p.Labels.MatchLabels) == 0 && len(p.Labels.MatchExpressions) == 0 {
 		return "", errors.New("No pod labels specified")
 	}
 
 	pods, err := p.Clientset.CoreV1().Pods(p.Namespace).List(metav1.ListOptions{
-		LabelSelector: metav1.FormatLabelSelector(&metav1.LabelSelector{
-			MatchLabels: p.Labels,
-		}),
+		LabelSelector: metav1.FormatLabelSelector(&p.Labels),
 	})
 
 	if err != nil {
 		return "", errors.Wrap(err, "Listing pods in kubernetes")
 	}
 
+	formatted := metav1.FormatLabelSelector(&p.Labels)
+
 	if len(pods.Items) == 0 {
-		return "", errors.New(fmt.Sprintf("Could not find pod for selector: labels %v", p.Labels))
+		return "", errors.New(fmt.Sprintf("Could not find pod for selector: labels \"%s\"", formatted))
 	}
 
 	if len(pods.Items) != 1 {
-		return "", errors.New(fmt.Sprintf("Ambiguous pod: found more than one pod for selector: labels %v", p.Labels))
+		return "", errors.New(fmt.Sprintf("Ambiguous pod: found more than one pod for selector: labels \"%s\"", formatted))
 	}
 
 	return pods.Items[0].ObjectMeta.Name, nil
