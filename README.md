@@ -1,5 +1,7 @@
 A Go library for creating port forwards into pods running in a Kubernetes cluster.
 
+![build status](https://ci.codesink.net/api/badges/justinbarrick/go-k8s-portforward/status.svg)
+
 This code is heavily inspired by the implementations in kubectl, fission, and helm:
 
 * https://github.com/kubernetes/helm/blob/master/pkg/kube/tunnel.go
