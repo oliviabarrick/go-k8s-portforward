@@ -4,11 +4,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/justinbarrick/go-k8s-portforward"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/justinbarrick/go-k8s-portforward"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type labelFlags map[string]string
