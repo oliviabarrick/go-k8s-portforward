@@ -14,9 +14,6 @@ import (
 	"k8s.io/client-go/transport/spdy"
 	"net"
 	"net/http"
-	"os"
-	"os/user"
-	"path/filepath"
 )
 
 // Used for creating a port forward into a Kubernetes pod
@@ -50,12 +47,11 @@ func NewPortForwarder(namespace string, labels metav1.LabelSelector, port int) (
 		DestinationPort: port,
 	}
 
-	configPath, err := pf.getKubeConfigPath()
-	if err != nil {
-		return pf, errors.Wrap(err, "Could not find kubernetes configuration file")
-	}
-
-	pf.Config, err = clientcmd.BuildConfigFromFlags("", configPath)
+	var err error
+	pf.Config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
 	if err != nil {
 		return pf, errors.Wrap(err, "Could not load kubernetes configuration file")
 	}
@@ -66,26 +62,6 @@ func NewPortForwarder(namespace string, labels metav1.LabelSelector, port int) (
 	}
 
 	return pf, nil
-}
-
-// Returns the path to the kubernetes config file.
-// If KUBECONFIG is set, it will use KUBECONFIG.
-// Otherwise, it will return ~/.kube/config.
-func (p *PortForward) getKubeConfigPath() (string, error) {
-	kubeconfig := ""
-
-	if os.Getenv("KUBECONFIG") != "" {
-		kubeconfig = os.Getenv("KUBECONFIG")
-	} else {
-		user, err := user.Current()
-		if err != nil {
-			return "", err
-		}
-
-		kubeconfig = filepath.Join(user.HomeDir, ".kube", "config")
-	}
-
-	return kubeconfig, nil
 }
 
 // Start a port forward to a pod - blocks until the tunnel is ready for use.
