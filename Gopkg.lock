@@ -164,14 +164,6 @@
   version = "1.1.4"
 
 [[projects]]
-  digest = "1:b18a7b6aa040a3235e5851119debbe2e7152d8d77e5013000ec405bfb74fa496"
-  name = "github.com/justinbarrick/go-k8s-portforward"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "b691ffe85e96a3e4ce5de9d8a17f1f884190e6d0"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:2f42fa12d6911c7b7659738758631bec870b7e9b4c6be5444f963cdcfccc191f"
   name = "github.com/modern-go/concurrent"
   packages = ["."]
@@ -551,7 +543,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/justinbarrick/go-k8s-portforward",
     "github.com/pkg/errors",
     "github.com/stretchr/testify/assert",
     "k8s.io/api/core/v1",

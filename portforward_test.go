@@ -5,32 +5,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fakekubernetes "k8s.io/client-go/kubernetes/fake"
-	"os"
-	"os/user"
 	"testing"
 )
-
-func TestPortForwardGetKubeConfigPath(t *testing.T) {
-	pf := PortForward{}
-
-	path, err := pf.getKubeConfigPath()
-	assert.Nil(t, err)
-
-	user, _ := user.Current()
-	assert.Equal(t, user.HomeDir+"/.kube/config", path)
-}
-
-func TestPortForwardGetKubeConfigPathEnvVarSet(t *testing.T) {
-	os.Setenv("KUBECONFIG", "/my/kube/config")
-	defer os.Setenv("KUBECONFIG", "")
-
-	pf := PortForward{}
-
-	path, err := pf.getKubeConfigPath()
-	assert.Nil(t, err)
-
-	assert.Equal(t, "/my/kube/config", path)
-}
 
 func newPod(name string, labels map[string]string) *corev1.Pod {
 	return &corev1.Pod{
