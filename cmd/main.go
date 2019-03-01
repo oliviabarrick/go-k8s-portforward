@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justinbarrick/go-k8s-portforward"
+	"portforward"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
