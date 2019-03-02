@@ -1,4 +1,4 @@
-module portforward
+module github.com/justinbarrick/go-k8s-portforward
 
 go 1.12
 
