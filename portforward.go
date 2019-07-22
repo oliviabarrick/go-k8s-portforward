@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/util/httpstream"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -181,6 +183,7 @@ func (p *PortForward) findPodByLabels() (string, error) {
 
 	pods, err := p.Clientset.CoreV1().Pods(p.Namespace).List(metav1.ListOptions{
 		LabelSelector: metav1.FormatLabelSelector(&p.Labels),
+		FieldSelector: fields.OneTermEqualSelector("status.phase", string(v1.PodRunning)).String(),
 	})
 
 	if err != nil {
@@ -190,7 +193,7 @@ func (p *PortForward) findPodByLabels() (string, error) {
 	formatted := metav1.FormatLabelSelector(&p.Labels)
 
 	if len(pods.Items) == 0 {
-		return "", errors.New(fmt.Sprintf("Could not find pod for selector: labels \"%s\"", formatted))
+		return "", errors.New(fmt.Sprintf("Could not find running pod for selector: labels \"%s\"", formatted))
 	}
 
 	if len(pods.Items) != 1 {
