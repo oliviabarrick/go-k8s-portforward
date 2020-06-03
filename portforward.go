@@ -2,8 +2,11 @@ package portforward
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
+	"net"
+	"net/http"
+
+	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -14,8 +17,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
-	"net"
-	"net/http"
 )
 
 // Used for creating a port forward into a Kubernetes pod
@@ -50,20 +51,63 @@ func NewPortForwarder(namespace string, labels metav1.LabelSelector, port int) (
 	}
 
 	var err error
-	pf.Config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
+
+	pf.Config, err = getKubernetesConfig()
 	if err != nil {
-		return pf, errors.Wrap(err, "Could not load kubernetes configuration file")
+		return pf, err
 	}
 
-	pf.Clientset, err = kubernetes.NewForConfig(pf.Config)
+	pf.Clientset, err = getKubernetesClient(pf.Config)
 	if err != nil {
-		return pf, errors.Wrap(err, "Could not create kubernetes client")
+		return pf, err
 	}
 
 	return pf, nil
+}
+
+//NewPortForwarderCustom initializes a port forwarder. This is different than the regular
+//NewPortForwarder in the sense that it allows you to customly build the PortForward
+//by hand and pass it as a parameter.
+//Useful if you want to query directly by pod name, for instance
+func NewPortForwarderCustom(pf *PortForward) (*PortForward, error) {
+	var err error
+
+	pf.Config, err = getKubernetesConfig()
+	if err != nil {
+		return pf, err
+	}
+
+	pf.Clientset, err = getKubernetesClient(pf.Config)
+	if err != nil {
+		return pf, err
+	}
+
+	return pf, nil
+}
+
+//GetKubernetesConfig loads the default k8s config in ~/.kube/config
+func getKubernetesConfig() (*rest.Config, error) {
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+
+	if err != nil {
+		return config, errors.Wrap(err, "Could not load kubernetes configuration file")
+	}
+
+	return config, nil
+}
+
+//GetKubernetesClient gets the initialized Kubernetes client
+func getKubernetesClient(config *rest.Config) (kubernetes.Interface, error) {
+	client, err := kubernetes.NewForConfig(config)
+
+	if err != nil {
+		return client, errors.Wrap(err, "Could not create kubernetes client")
+	}
+
+	return client, nil
 }
 
 // Start a port forward to a pod - blocks until the tunnel is ready for use.

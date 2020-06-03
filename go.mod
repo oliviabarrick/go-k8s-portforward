@@ -15,7 +15,6 @@ require (
 	github.com/gophercloud/gophercloud v0.0.0-20180807015416-4ea085781bae // indirect
 	github.com/imdario/mergo v0.3.5 // indirect
 	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be // indirect
-	github.com/justinbarrick/go-k8s-portforward v1.0.2
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/pkg/errors v0.8.0

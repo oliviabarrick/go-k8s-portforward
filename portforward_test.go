@@ -1,11 +1,12 @@
 package portforward
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fakekubernetes "k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func newPod(name string, labels map[string]string) *corev1.Pod {
@@ -58,7 +59,7 @@ func TestFindPodByLabelsNoneExist(t *testing.T) {
 
 	_, err := pf.findPodByLabels()
 	assert.NotNil(t, err)
-	assert.Equal(t, "Could not find pod for selector: labels \"name=flux\"", err.Error())
+	assert.Equal(t, "Could not find running pod for selector: labels \"name=flux\"", err.Error())
 }
 
 func TestFindPodByLabelsMultiple(t *testing.T) {
@@ -132,7 +133,7 @@ func TestFindPodByLabelsExpressionNotFound(t *testing.T) {
 
 	_, err := pf.findPodByLabels()
 	assert.NotNil(t, err)
-	assert.Equal(t, "Could not find pod for selector: labels \"name in (flux,fluxd)\"", err.Error())
+	assert.Equal(t, "Could not find running pod for selector: labels \"name in (flux,fluxd)\"", err.Error())
 }
 
 func TestGetPodNameNameSet(t *testing.T) {
